@@ -1,0 +1,19 @@
+# Core ML Libraries - Install PyTorch via Conda as per README instructions
+# torch
+# torchvision
+# torchaudio
+
+# Transformer Libraries
+simpletransformers==0.70.0
+transformers==4.42.3
+sentencepiece
+huggingface-hub
+datasets
+sacrebleu
+
+# Data & Utility Libraries
+pandas
+tqdm
+
+# Web App
+streamlit

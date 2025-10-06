@@ -1,0 +1,16 @@
+# Ignore large model output directories
+outputs/
+cache_dir/
+runs/
+
+# Ignore the dataset itself (users should download it as per the README)
+data/
+
+# Ignore Python virtual environments and cache
+simple-t5-env/
+__pycache__/
+*.pyc
+
+# Ignore other common files
+.DS_Store
+.ipynb_checkpoints
