@@ -11,9 +11,19 @@ huggingface-hub
 datasets
 sacrebleu
 
+# Fix protobuf compatibility issue (must be 3.20.x for tensorflow compatibility)
+protobuf==3.20.3
+
 # Data & Utility Libraries
 pandas
 tqdm
 
-# Web App
+# Web App - Flask
+flask
+python-dotenv
+
+# Google Gemini AI
+google-generativeai
+
+# Optional: Streamlit (legacy)
 streamlit

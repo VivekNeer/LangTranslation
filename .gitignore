@@ -1,3 +1,6 @@
+# Environment variables - IMPORTANT!
+.env
+
 # Ignore large model output directories
 outputs/
 cache_dir/
@@ -8,9 +11,30 @@ data/
 
 # Ignore Python virtual environments and cache
 simple-t5-env/
+venv/
+ENV/
+env/
+.venv
 __pycache__/
 *.pyc
 
 # Ignore other common files
 .DS_Store
 .ipynb_checkpoints
+
+# Model cache
+transformers_cache/
+.cache/
+
+# Logs
+*.log
+logs/
+
+# Flask
+instance/
+.webassets-cache
+
+# Database
+*.db
+*.sqlite
+*.sqlite3

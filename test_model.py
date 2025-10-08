@@ -3,10 +3,11 @@ from simpletransformers.t5 import T5Model
 
 # --- 1. Load your fully trained model ---
 # This path should point to the model you trained for several hours
-model_path = "outputs/mt5-sinhalese-english-100k"
+# model_path = "outputs/mt5-sinhalese-english-100k"
+model_path = "VivekNeer/mt5-sinhalese-english"
 
 print(f"Loading model from: {model_path}")
-model = T5Model("mt5", model_path, use_cuda=True) # Ensure GPU is used if available
+model = T5Model("mt5", model_path, use_cuda=False) # Ensure GPU is used if available
 
 # --- 2. Set generation arguments for good quality output ---
 model.args.num_beams = 5

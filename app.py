@@ -1,6 +1,13 @@
+import os
+os.environ["TRANSFORMERS_USE_LEGACY_IMPORT"] = "True"
+
 import streamlit as st
 from simpletransformers.t5 import T5Model
 import torch
+import warnings
+
+# Suppress the FutureWarning about prepare_seq2seq_batch
+warnings.filterwarnings("ignore", category=FutureWarning, module="transformers")
 
 # --- Page Configuration ---
 st.set_page_config(
@@ -13,7 +20,8 @@ st.set_page_config(
 @st.cache_resource
 def load_model():
     # --- IMPORTANT: This path points to your FULLY TRAINED model ---
-    model_path = "outputs/mt5-sinhalese-english-100k" 
+    # model_path = "outputs/mt5-sinhalese-english-100k" 
+    model_path = "VivekNeer/mt5-sinhalese-english"
     
     print(f"Loading model from: {model_path}")
     model = T5Model("mt5", model_path)

@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English-Tulu Dictionary & Translator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header .icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .main-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            margin-bottom: 20px;
+        }
+
+        .search-section {
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 20px 60px 20px 20px;
+            font-size: 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 50px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-box .search-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .search-box .search-btn:hover {
+            transform: translateY(-50%) scale(1.05);
+        }
+
+        .translation-result {
+            display: none;
+            margin-top: 30px;
+        }
+
+        .translation-main {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .original-text {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .translated-text {
+            font-size: 2em;
+            color: #333;
+            font-family: 'Noto Sans Kannada', sans-serif;
+            margin-bottom: 15px;
+        }
+
+        .word-info {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .info-item i {
+            color: #667eea;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 8px 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #667eea;
+            color: #667eea;
+        }
+
+        .btn-outline:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        .details-section {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #666;
+            font-size: 16px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: #667eea;
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .example-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            border-left: 3px solid #667eea;
+        }
+
+        .example-en {
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .example-tulu {
+            color: #666;
+            font-family: 'Noto Sans Kannada', sans-serif;
+        }
+
+        .synonym-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .synonym-item {
+            padding: 12px 18px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #667eea;
+            min-width: 150px;
+        }
+
+        .synonym-en {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+
+        .synonym-tulu {
+            color: #666;
+            font-family: 'Noto Sans Kannada', sans-serif;
+            font-size: 13px;
+        }
+
+        .synonym-tag {
+            padding: 8px 16px;
+            background: white;
+            border-radius: 20px;
+            color: #667eea;
+            border: 1px solid #667eea;
+            font-size: 14px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .message.error {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+        }
+
+        .message.success {
+            background-color: #efe;
+            border: 1px solid #cfc;
+            color: #3c3;
+        }
+
+        .loading-details {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .main-card {
+                padding: 20px;
+            }
+
+            .translated-text {
+                font-size: 1.5em;
+            }
+
+            .word-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">📚</div>
+            <h1>English - Tulu Dictionary</h1>
+            <p>Powered by AI Translation & Enhanced Features</p>
+        </div>
+
+        <div class="main-card">
+            <div class="search-section">
+                <div class="search-box">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Type a word or phrase to translate..."
+                        autocomplete="off"
+                    >
+                    <button class="search-btn" onclick="translateWord()">
+                        <i class="fas fa-search"></i> Translate
+                    </button>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Translating with HuggingFace model...</p>
+            </div>
+
+            <div id="message" class="message"></div>
+
+            <div class="translation-result" id="translationResult">
+                <div class="translation-main">
+                    <div class="original-text" id="originalText"></div>
+                    <div class="translated-text" id="translatedText"></div>
+                    
+                    <div class="word-info" id="wordInfo" style="display: none;">
+                        <div class="info-item">
+                            <i class="fas fa-book"></i>
+                            <span id="partOfSpeech"></span>
+                        </div>
+                        <div class="info-item">
+                            <i class="fas fa-volume-up"></i>
+                            <span id="pronunciation"></span>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="copyTranslation()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button class="btn btn-outline" onclick="toggleDetails()">
+                            <i class="fas fa-info-circle"></i> More Details
+                        </button>
+                    </div>
+                </div>
+
+                <div class="details-section" id="detailsSection">
+                    <div class="loading-details" id="loadingDetails">
+                        <div class="spinner"></div>
+                        <p>Loading additional details from Gemini AI...</p>
+                    </div>
+
+                    <div id="detailsContent" style="display: none;">
+                        <div class="tabs">
+                            <button class="tab active" onclick="switchTab('examples')">
+                                <i class="fas fa-list"></i> Examples
+                            </button>
+                            <button class="tab" onclick="switchTab('synonyms')">
+                                <i class="fas fa-sync"></i> Synonyms
+                            </button>
+                        </div>
+
+                        <div id="examplesTab" class="tab-content active">
+                            <div id="examplesList"></div>
+                        </div>
+
+                        <div id="synonymsTab" class="tab-content">
+                            <div class="synonym-list" id="synonymsList"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentTranslation = {
+            input: '',
+            output: '',
+            details: null
+        };
+
+        async function translateWord() {
+            const inputText = document.getElementById('searchInput').value.trim();
+            const loading = document.getElementById('loading');
+            const message = document.getElementById('message');
+            const result = document.getElementById('translationResult');
+            const detailsSection = document.getElementById('detailsSection');
+
+            // Reset
+            message.style.display = 'none';
+            result.style.display = 'none';
+            detailsSection.style.display = 'none';
+
+            if (!inputText) {
+                showMessage('Please enter a word or phrase to translate.', 'error');
+                return;
+            }
+
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('/translate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text: inputText,
+                        include_details: true 
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentTranslation = data;
+                    displayTranslation(data);
+                    showMessage('Translation completed!', 'success');
+                } else {
+                    showMessage(data.error || 'Translation failed.', 'error');
+                }
+            } catch (error) {
+                showMessage('An error occurred. Please try again.', 'error');
+                console.error('Error:', error);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function displayTranslation(data) {
+            document.getElementById('originalText').textContent = data.input;
+            document.getElementById('translatedText').textContent = data.output;
+            
+            // Display word info if available
+            if (data.word_info) {
+                document.getElementById('wordInfo').style.display = 'flex';
+                document.getElementById('partOfSpeech').textContent = data.word_info.part_of_speech || 'N/A';
+                document.getElementById('pronunciation').textContent = data.word_info.pronunciation || 'N/A';
+            } else {
+                document.getElementById('wordInfo').style.display = 'none';
+            }
+
+            // Display examples
+            if (data.examples && data.examples.length > 0) {
+                const examplesList = document.getElementById('examplesList');
+                examplesList.innerHTML = data.examples.map(ex => `
+                    <div class="example-item">
+                        <div class="example-en">${ex.english}</div>
+                        <div class="example-tulu">${ex.tulu}</div>
+                    </div>
+                `).join('');
+            }
+
+            // Display synonyms with translations
+            if (data.synonyms && data.synonyms.length > 0) {
+                const synonymsList = document.getElementById('synonymsList');
+                synonymsList.innerHTML = data.synonyms.map(syn => `
+                    <div class="synonym-item">
+                        <div class="synonym-en">${syn.english}</div>
+                        <div class="synonym-tulu">${syn.tulu}</div>
+                    </div>
+                `).join('');
+            }
+
+            document.getElementById('translationResult').style.display = 'block';
+            
+            // Hide loading details and show content
+            if (data.word_info || data.examples || data.synonyms) {
+                document.getElementById('loadingDetails').style.display = 'none';
+                document.getElementById('detailsContent').style.display = 'block';
+            }
+        }
+
+        function toggleDetails() {
+            const detailsSection = document.getElementById('detailsSection');
+            if (detailsSection.style.display === 'none') {
+                detailsSection.style.display = 'block';
+            } else {
+                detailsSection.style.display = 'none';
+            }
+        }
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            event.target.closest('.tab').classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        function copyTranslation() {
+            const text = document.getElementById('translatedText').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                showMessage('Translation copied to clipboard!', 'success');
+            });
+        }
+
+        function showMessage(text, type) {
+            const message = document.getElementById('message');
+            message.textContent = text;
+            message.className = 'message ' + type;
+            message.style.display = 'block';
+            
+            setTimeout(() => {
+                message.style.display = 'none';
+            }, 3000);
+        }
+
+        // Enter key to search
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                translateWord();
+            }
+        });
+    </script>
+</body>
+</html>
