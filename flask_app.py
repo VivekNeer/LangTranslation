@@ -11,27 +11,32 @@ load_dotenv()
 
 app = Flask(__name__)
 
-# Global variables
+# --- Global variables ---
 translation_model = None
 gemini_model = None
+# --- NEW: Define prefixes for clarity ---
+PREFIX_MAP = {
+    "en-kn": "translate english to kannada",
+    "kn-en": "translate kannada to english",
+}
 
 def clean_gemini_response(text):
     """Clean Gemini API response to extract JSON"""
-    # Remove markdown code blocks
     text = re.sub(r'```json\s*', '', text)
     text = re.sub(r'```\s*', '', text)
-    # Strip whitespace
     text = text.strip()
     return text
 
 def load_translation_model():
-    """Load the HuggingFace mT5 translation model"""
+    """Load the locally trained HuggingFace mT5 translation model for Kannada."""
     global translation_model
     
     if translation_model is None:
-        model_path = "VivekNeer/mt5-sinhalese-english"
+        # --- Point to your local Kannada model ---
+        model_path = "outputs/mt5-kannada-english-100k"
         print(f"Loading translation model from: {model_path}")
         
+        # Make sure to specify model_type='mt5'
         translation_model = T5Model("mt5", model_path, use_cuda=False)
         
         # Set generation arguments for good quality output
@@ -53,131 +58,116 @@ def load_gemini_model():
             return None
         
         genai.configure(api_key=api_key)
+        # --- Using the stable 'gemini-pro' model ---
         gemini_model = genai.GenerativeModel('gemini-2.0-flash-exp')
         print("Gemini API initialized successfully.")
     
     return gemini_model
 
-def translate_text(input_text):
-    """Translate text using the HuggingFace model"""
+def translate_text(input_text, prefix):
+    """Translate text using the HuggingFace model with a required prefix."""
     model = load_translation_model()
     
-    print(f"Translating: {input_text}")
-    translated_text = model.predict([input_text])
+    prefixed_input = f"{prefix}: {input_text}"
+    print(f"Translating: {prefixed_input}")
+    
+    translated_text = model.predict([prefixed_input])
     
     output = translated_text[0] if translated_text else ""
     print(f"Translation: {output}")
     
     return output
 
-def get_examples_from_gemini(word, translation):
-    """Get example sentences using Gemini API"""
+def get_examples_from_gemini(word):
+    """Get example sentences using Gemini API and translate them to Kannada."""
     gemini = load_gemini_model()
-    if not gemini:
-        return []
+    if not gemini: return []
     
     try:
         prompt = f"""
-        Generate 3 practical example sentences using the English word/phrase "{word}".
-        
-        Provide the response as a JSON array with this format:
+        Generate 3 practical example sentences for the English word/phrase "{word}".
+        Provide the response as a JSON array of objects:
         [
             {{"english": "example sentence in English"}},
             {{"english": "example sentence in English"}},
             {{"english": "example sentence in English"}}
         ]
-        
         Only return the JSON array, nothing else. Do not use markdown formatting.
         """
-        
         response = gemini.generate_content(prompt)
         cleaned_response = clean_gemini_response(response.text)
-        print(f"Gemini examples response: {cleaned_response[:200]}...")
         examples = json.loads(cleaned_response)
         
-        # Translate each English example to Tulu using HuggingFace model
-        model = load_translation_model()
+        prefix_en_kn = PREFIX_MAP["en-kn"]
         for example in examples:
             english_text = example.get('english', '')
             if english_text:
-                tulu_translation = model.predict([english_text])
-                example['tulu'] = tulu_translation[0] if tulu_translation else ""
+                kannada_translation = translate_text(english_text, prefix_en_kn)
+                # --- CHANGED: Use the key 'tulu' so the frontend can find it ---
+                example['tulu'] = kannada_translation
         
         return examples
     except Exception as e:
         print(f"Error getting examples from Gemini: {e}")
-        print(f"Raw response: {response.text if 'response' in locals() else 'No response'}")
         return []
 
 def get_synonyms_from_gemini(word):
-    """Get synonyms and related words using Gemini API"""
+    """Get synonyms using Gemini API and translate them to Kannada."""
     gemini = load_gemini_model()
-    if not gemini:
-        return []
+    if not gemini: return []
     
     try:
         prompt = f"""
-        For the English word/phrase "{word}", provide 3-5 synonyms or related words.
-        
+        For the English word/phrase "{word}", provide 3-5 diverse synonyms or related words.
         Provide the response as a JSON array of strings:
         ["synonym1", "synonym2", "synonym3"]
-        
         Only return the JSON array, nothing else. Do not use markdown formatting.
         """
-        
         response = gemini.generate_content(prompt)
         cleaned_response = clean_gemini_response(response.text)
-        print(f"Gemini synonyms response: {cleaned_response[:200]}...")
         synonyms_list = json.loads(cleaned_response)
         
-        # Translate each synonym to Tulu using HuggingFace model
-        model = load_translation_model()
+        prefix_en_kn = PREFIX_MAP["en-kn"]
         synonyms_with_translation = []
         for synonym in synonyms_list:
             if synonym:
-                tulu_translation = model.predict([synonym])
+                kannada_translation = translate_text(synonym, prefix_en_kn)
                 synonyms_with_translation.append({
                     'english': synonym,
-                    'tulu': tulu_translation[0] if tulu_translation else ""
+                    # --- CHANGED: Use the key 'tulu' so the frontend can find it ---
+                    'tulu': kannada_translation
                 })
         
         return synonyms_with_translation
     except Exception as e:
         print(f"Error getting synonyms from Gemini: {e}")
-        print(f"Raw response: {response.text if 'response' in locals() else 'No response'}")
         return []
 
 def get_word_info_from_gemini(word, translation):
-    """Get detailed word information using Gemini API"""
+    """Get detailed word information using Gemini API for Kannada."""
     gemini = load_gemini_model()
-    if not gemini:
-        return {}
+    if not gemini: return {}
     
     try:
         prompt = f"""
-        For the English word/phrase "{word}" (Tulu: "{translation}"), provide:
-        1. Part of speech (noun, verb, adjective, etc.)
-        2. Pronunciation guide (simple phonetic)
-        3. Brief usage note (1 sentence)
-        
-        Provide the response as JSON:
+        For the English word/phrase "{word}" (Kannada: "{translation}"), provide:
+        1. Part of speech (e.g., noun, verb, adjective).
+        2. A simple phonetic pronunciation guide.
+        3. A brief, one-sentence usage note.
+        Provide the response as a clean JSON object:
         {{
             "part_of_speech": "noun",
             "pronunciation": "heh-loh",
-            "usage_note": "Common greeting used in informal situations"
+            "usage_note": "A common greeting used in most situations."
         }}
-        
         Only return the JSON object, nothing else. Do not use markdown formatting.
         """
-        
         response = gemini.generate_content(prompt)
         cleaned_response = clean_gemini_response(response.text)
-        print(f"Gemini word info response: {cleaned_response[:200]}...")
         info = json.loads(cleaned_response)
         return info
     except Exception as e:
         print(f"Error getting word info from Gemini: {e}")
-        print(f"Raw response: {response.text if 'response' in locals() else 'No response'}")
         return {}
 
 @app.route('/')
@@ -187,124 +177,51 @@ def home():
 
 @app.route('/translate', methods=['POST'])
 def translate():
-    """Handle translation requests with enhanced features"""
+    """Handle translation requests with enhanced features."""
     try:
         data = request.get_json()
         input_text = data.get('text', '').strip()
+        direction = data.get('direction', 'en-kn')
         include_details = data.get('include_details', True)
         
         if not input_text:
-            return jsonify({
-                'success': False,
-                'error': 'Please enter some text to translate.'
-            }), 400
+            return jsonify({'success': False, 'error': 'Please enter text.'}), 400
         
-        # Step 1: Perform translation using HuggingFace model
-        translated = translate_text(input_text)
+        prefix = PREFIX_MAP.get(direction)
+        if not prefix:
+            return jsonify({'success': False, 'error': 'Invalid translation direction.'}), 400
+        
+        translated = translate_text(input_text, prefix)
         
         if not translated:
-            return jsonify({
-                'success': False,
-                'error': 'The model produced an empty translation.'
-            }), 500
+            return jsonify({'success': False, 'error': 'Model produced an empty translation.'}), 500
         
-        # Prepare basic response
         response_data = {
             'success': True,
             'input': input_text,
             'output': translated
         }
         
-        # Step 2: Get enhanced details from Gemini (if requested)
-        if include_details:
-            # Get word information
-            word_info = get_word_info_from_gemini(input_text, translated)
-            if word_info:
-                response_data['word_info'] = word_info
-            
-            # Get examples
-            examples = get_examples_from_gemini(input_text, translated)
-            if examples:
-                response_data['examples'] = examples
-            
-            # Get synonyms
-            synonyms = get_synonyms_from_gemini(input_text)
-            if synonyms:
-                response_data['synonyms'] = synonyms
+        if include_details and direction == 'en-kn':
+            response_data['word_info'] = get_word_info_from_gemini(input_text, translated)
+            response_data['examples'] = get_examples_from_gemini(input_text)
+            response_data['synonyms'] = get_synonyms_from_gemini(input_text)
         
         return jsonify(response_data)
             
     except Exception as e:
         print(f"Error during translation: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': f'An error occurred: {str(e)}'
-        }), 500
+        return jsonify({'success': False, 'error': f'An error occurred: {str(e)}'}), 500
 
-@app.route('/examples', methods=['POST'])
-def get_examples():
-    """Get example sentences for a word"""
-    try:
-        data = request.get_json()
-        word = data.get('word', '').strip()
-        translation = data.get('translation', '').strip()
-        
-        if not word or not translation:
-            return jsonify({
-                'success': False,
-                'error': 'Word and translation are required.'
-            }), 400
-        
-        examples = get_examples_from_gemini(word, translation)
-        
-        return jsonify({
-            'success': True,
-            'examples': examples
-        })
-            
-    except Exception as e:
-        print(f"Error getting examples: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': f'An error occurred: {str(e)}'
-        }), 500
-
-@app.route('/synonyms', methods=['POST'])
-def get_synonyms():
-    """Get synonyms for a word"""
-    try:
-        data = request.get_json()
-        word = data.get('word', '').strip()
-        
-        if not word:
-            return jsonify({
-                'success': False,
-                'error': 'Word is required.'
-            }), 400
-        
-        synonyms = get_synonyms_from_gemini(word)
-        
-        return jsonify({
-            'success': True,
-            'synonyms': synonyms
-        })
-            
-    except Exception as e:
-        print(f"Error getting synonyms: {str(e)}")
-        return jsonify({
-            'success': False,
-            'error': f'An error occurred: {str(e)}'
-        }), 500
 
 if __name__ == '__main__':
-    # Load models when starting the app
     print("Initializing Flask app...")
-    print("Loading translation model...")
+    print("Loading translation model (this might take a moment)...")
     load_translation_model()
     print("Initializing Gemini API...")
     load_gemini_model()
     
-    # Run the Flask app
-    print("Starting Flask server...")
+    print("\n--- Flask Server is Starting ---")
     print("Server will be available at: http://localhost:5000")
     app.run(debug=True, host='0.0.0.0', port=5000)
+
