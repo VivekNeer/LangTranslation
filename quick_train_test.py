@@ -9,18 +9,37 @@ logging.basicConfig(level=logging.INFO)
 transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
 
-# Load the full datasets
-full_train_df = pd.read_csv("data/train.tsv", sep="\t").astype(str)
-full_eval_df = pd.read_csv("data/eval.tsv", sep="\t").astype(str)
+DATA_DIR = "data"
+TRAIN_CSV = os.path.join(DATA_DIR, "combined_translations_train.csv")
+EVAL_CSV = os.path.join(DATA_DIR, "combined_translations_test.csv")
 
-# Use a small subset
-train_df = full_train_df.head(1000)
-eval_df = full_eval_df.head(200)
+TASKS = (
+    ("translate english to kannada", "English", "Kannada"),
+    ("translate kannada to tulu", "Kannada", "Tulu"),
+)
+
+
+def _build_tasks(df: pd.DataFrame) -> pd.DataFrame:
+    task_frames = []
+    for prefix, source_col, target_col in TASKS:
+        task_df = (
+            df[[source_col, target_col]]
+            .dropna()
+            .rename(columns={source_col: "input_text", target_col: "target_text"})
+        )
+        task_df["prefix"] = prefix
+        task_frames.append(
+            task_df[["prefix", "input_text", "target_text"]]
+            .astype(str)
+            .apply(lambda col: col.str.strip())
+        )
+    return pd.concat(task_frames, ignore_index=True)
+
+
+train_df = _build_tasks(pd.read_csv(TRAIN_CSV)).head(1000)
+eval_df = _build_tasks(pd.read_csv(EVAL_CSV)).head(200)
 
 print(f"Running quick test with {len(train_df)} training samples and {len(eval_df)} evaluation samples.")
-
-# train_df = train_df.drop("prefix", axis=1)
-# eval_df = eval_df.drop("prefix", axis=1)
 
 model_args = {
     "reprocess_input_data": True,
@@ -34,8 +53,6 @@ model_args = {
     "fp16": False,
 }
 
-# The simple, direct way to initialize the model.
-# The T5Model class correctly handles using "mt5" under the hood.
 model = T5Model("mt5", "google/mt5-small", args=model_args)
 
 print("Starting quick test training...")

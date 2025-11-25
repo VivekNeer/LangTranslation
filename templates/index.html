@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English-Tulu Dictionary & Translator</title>
+    <title>Multilingual Translator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Kannada:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -51,6 +51,23 @@
 
         .search-section {
             margin-bottom: 30px;
+        }
+
+        .direction-toggle {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .direction-select {
+            padding: 10px 16px;
+            border-radius: 30px;
+            border: 2px solid #e0e0e0;
+            font-size: 15px;
+            background: #fff;
+            cursor: pointer;
         }
 
         .search-box {
@@ -346,12 +363,19 @@
     <div class="container">
         <div class="header">
             <div class="icon">📚</div>
-            <h1>English - Tulu Dictionary</h1>
+            <h1>English · Kannada · Tulu Translator</h1>
             <p>Powered by AI Translation & Enhanced Features</p>
         </div>
 
         <div class="main-card">
             <div class="search-section">
+                <div class="direction-toggle">
+                    <label for="directionSelect">Choose direction:</label>
+                    <select id="directionSelect" class="direction-select">
+                        <option value="en-ka">English → Kannada</option>
+                        <option value="ka-tu">Kannada → Tulu</option>
+                    </select>
+                </div>
                 <div class="search-box">
                     <input 
                         type="text" 
@@ -434,8 +458,20 @@
             details: null
         };
 
+        const directionConfig = {
+            'en-ka': { label: 'English to Kannada', targetLabel: 'Kannada', placeholder: 'Type an English word or phrase...' },
+            'ka-tu': { label: 'Kannada to Tulu', targetLabel: 'Tulu', placeholder: 'Type a Kannada word or phrase...' }
+        };
+
+        document.getElementById('directionSelect').addEventListener('change', (event) => {
+            const config = directionConfig[event.target.value];
+            const input = document.getElementById('searchInput');
+            input.placeholder = config.placeholder;
+        });
+
         async function translateWord() {
             const inputText = document.getElementById('searchInput').value.trim();
+            const direction = document.getElementById('directionSelect').value;
             const loading = document.getElementById('loading');
             const message = document.getElementById('message');
             const result = document.getElementById('translationResult');
@@ -459,7 +495,8 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ 
                         text: inputText,
-                        include_details: true 
+                        include_details: true,
+                        direction 
                     })
                 });
 
@@ -481,6 +518,9 @@
         }
 
         function displayTranslation(data) {
+            const direction = data.direction || document.getElementById('directionSelect').value;
+            const targetLabel = directionConfig[direction]?.targetLabel || 'Target';
+            currentTranslation.direction = direction;
             document.getElementById('originalText').textContent = data.input;
             document.getElementById('translatedText').textContent = data.output;
             
@@ -499,7 +539,7 @@
                 examplesList.innerHTML = data.examples.map(ex => `
                     <div class="example-item">
                         <div class="example-en">${ex.english}</div>
-                        <div class="example-tulu">${ex.tulu}</div>
+                        <div class="example-tulu">${ex.target || ''}</div>
                     </div>
                 `).join('');
             }
@@ -510,7 +550,7 @@
                 synonymsList.innerHTML = data.synonyms.map(syn => `
                     <div class="synonym-item">
                         <div class="synonym-en">${syn.english}</div>
-                        <div class="synonym-tulu">${syn.tulu}</div>
+                        <div class="synonym-tulu">${syn.target || ''}</div>
                     </div>
                 `).join('');
             }

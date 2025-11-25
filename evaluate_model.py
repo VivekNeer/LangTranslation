@@ -1,43 +1,48 @@
+import os
 import pandas as pd
 from simpletransformers.t5 import T5Model
 import sacrebleu
 
 # --- Configuration ---
-MODEL_PATH = "outputs/mt5-sinhalese-english-100k"
-EVAL_DATA_FILE = "data/eval.tsv"
+MODEL_PATH = "outputs/mt5-english-kannada-tulu"
+EVAL_CSV = os.path.join("data", "combined_translations_test.csv")
 
-# --- Load Model and Data ---
-print("Loading fine-tuned model...")
+TASKS = (
+    ("translate english to kannada", "English", "Kannada", "en-ka"),
+    ("translate kannada to tulu", "Kannada", "Tulu", "ka-tu"),
+)
+
+
+def _build_prediction_sets(df: pd.DataFrame):
+    evaluation_sets = {}
+    for prefix, source_col, target_col, key in TASKS:
+        task_df = df[[source_col, target_col]].dropna()
+        inputs = (
+            prefix + ": " + task_df[source_col].astype(str).str.strip()
+        ).tolist()
+        labels = task_df[target_col].astype(str).str.strip().tolist()
+        evaluation_sets[key] = (inputs, labels)
+    return evaluation_sets
+
+
+print("Loading fine-tuned model and evaluation data...")
 model = T5Model("mt5", MODEL_PATH, use_cuda=True)
-eval_df = pd.read_csv(EVAL_DATA_FILE, sep="\t").astype(str)
+eval_df = pd.read_csv(EVAL_CSV)
+eval_sets = _build_prediction_sets(eval_df)
 
-# --- Prepare Data for Evaluation ---
-# We want to test both translation directions
-to_predict_en_to_si = eval_df[eval_df["prefix"] == "translate english to sinhalese"]["input_text"].tolist()
-ground_truth_en_to_si = eval_df[eval_df["prefix"] == "translate english to sinhalese"]["target_text"].tolist()
-
-to_predict_si_to_en = eval_df[eval_df["prefix"] == "translate sinhalese to english"]["input_text"].tolist()
-ground_truth_si_to_en = eval_df[eval_df["prefix"] == "translate sinhalese to english"]["target_text"].tolist()
-
-# --- Generate Predictions ---
-print("\nGenerating English to Sinhalese predictions...")
-predictions_en_to_si = model.predict(to_predict_en_to_si)
-
-print("Generating Sinhalese to English predictions...")
-predictions_si_to_en = model.predict(to_predict_si_to_en)
-
-# --- Calculate BLEU Score ---
-# Sacrebleu expects a list of ground truths for each prediction
-bleu_en_to_si = sacrebleu.corpus_bleu(predictions_en_to_si, [ground_truth_en_to_si])
-bleu_si_to_en = sacrebleu.corpus_bleu(predictions_si_to_en, [ground_truth_si_to_en])
+bleu_scores = {}
+for key, (inputs, labels) in eval_sets.items():
+    direction_label = "English to Kannada" if key == "en-ka" else "Kannada to Tulu"
+    print(f"\nGenerating predictions for {direction_label} ({len(inputs)} samples)...")
+    preds = model.predict(inputs)
+    bleu_scores[key] = sacrebleu.corpus_bleu(preds, [labels])
 
 print("\n--- Evaluation Results ---")
-print(f"English to Sinhalese BLEU Score: {bleu_en_to_si.score:.2f}")
-print(f"Sinhalese to English BLEU Score: {bleu_si_to_en.score:.2f}")
+print(f"English to Kannada BLEU Score: {bleu_scores['en-ka'].score:.2f}")
+print(f"Kannada to Tulu BLEU Score: {bleu_scores['ka-tu'].score:.2f}")
 print("--------------------------")
 
-# Save scores to a file for the plotting script
 with open("bleu_scores.txt", "w") as f:
-    f.write(f"en-si,{bleu_en_to_si.score:.2f}\n")
-    f.write(f"si-en,{bleu_si_to_en.score:.2f}\n")
+    f.write(f"en-ka,{bleu_scores['en-ka'].score:.2f}\n")
+    f.write(f"ka-tu,{bleu_scores['ka-tu'].score:.2f}\n")
 print("Scores saved to bleu_scores.txt")

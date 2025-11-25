@@ -9,18 +9,50 @@ logging.basicConfig(level=logging.INFO)
 transformers_logger = logging.getLogger("transformers")
 transformers_logger.setLevel(logging.WARNING)
 
-# Load the full datasets
-print("Loading full dataset...")
-full_train_df = pd.read_csv("data/train.tsv", sep="\t").astype(str)
-full_eval_df = pd.read_csv("data/eval.tsv", sep="\t").astype(str)
-print("Dataset loaded.")
+DATA_DIR = "data"
+TRAIN_CSV = os.path.join(DATA_DIR, "combined_translations_train.csv")
+EVAL_CSV = os.path.join(DATA_DIR, "combined_translations_test.csv")
+OUTPUT_DIR = "outputs/mt5-english-kannada-tulu"
 
-# --- USE A LARGE, MANAGEABLE SUBSET ---
-# This is the key step to prevent running out of RAM.
-train_df = full_train_df.head(100000)
-eval_df = full_eval_df.head(5000)
+TASKS = (
+    ("translate english to kannada", "English", "Kannada"),
+    ("translate kannada to tulu", "Kannada", "Tulu"),
+)
 
-print(f"Using a subset of {len(train_df)} for training and {len(eval_df)} for validation.")
+
+def _build_tasks(df: pd.DataFrame) -> pd.DataFrame:
+    """Return a dataframe with prefix/input/target rows for each configured task."""
+
+    task_frames = []
+    for prefix, source_col, target_col in TASKS:
+        if source_col not in df.columns or target_col not in df.columns:
+            raise ValueError(
+                f"Missing required column(s) '{source_col}' or '{target_col}' in dataset."
+            )
+
+        task_df = (
+            df[[source_col, target_col]]
+            .dropna()
+            .rename(columns={source_col: "input_text", target_col: "target_text"})
+        )
+        task_df["prefix"] = prefix
+        task_frames.append(
+            task_df[["prefix", "input_text", "target_text"]]
+            .astype(str)
+            .apply(lambda col: col.str.strip())
+        )
+
+    return pd.concat(task_frames, ignore_index=True)
+
+
+print("Loading three-column train/test CSV files...")
+train_raw = pd.read_csv(TRAIN_CSV)
+eval_raw = pd.read_csv(EVAL_CSV)
+
+train_df = _build_tasks(train_raw).head(100000)
+eval_df = _build_tasks(eval_raw).head(5000)
+
+print(f"Prepared {len(train_df)} training rows and {len(eval_df)} validation rows.")
 
 model_args = {
     "reprocess_input_data": True,
@@ -30,10 +62,10 @@ model_args = {
     "eval_batch_size": 4,
     "num_train_epochs": 3,
     "save_eval_checkpoints": True,
-    "save_steps": 5000, # Save a checkpoint every 5000 steps
+    "save_steps": 5000,
     "use_multiprocessing": False,
-    "fp16": False, # Use full precision for stable training
-    "output_dir": "outputs/mt5-sinhalese-english-100k",
+    "fp16": False,
+    "output_dir": OUTPUT_DIR,
 }
 
 model = T5Model("mt5", "google/mt5-small", args=model_args)

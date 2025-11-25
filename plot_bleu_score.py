@@ -3,10 +3,15 @@ import pandas as pd
 import seaborn as sns
 
 # --- Configuration ---
-# Benchmark scores from the Tatoeba Challenge for comparison
+DIRECTIONS = {
+    "en-ka": "English to Kannada",
+    "ka-tu": "Kannada to Tulu",
+}
+
+# Optional benchmark BLEU scores; set to None if not available
 BENCHMARK_SCORES = {
-    "English to Sinhalese": 9.3,
-    "Sinhalese to English": 23.3,
+    "English to Kannada": None,
+    "Kannada to Tulu": None,
 }
 
 # --- Plot Styling ---
@@ -19,20 +24,28 @@ try:
         scores = {line.split(',')[0]: float(line.split(',')[1]) for line in f}
 except FileNotFoundError:
     print("Error: bleu_scores.txt not found. Please run evaluate_model.py first.")
-    exit()
+    raise SystemExit(1)
 
-# --- Create DataFrame for Plotting ---
-data = {
-    "Translation Direction": ["English to Sinhalese", "Sinhalese to English", "English to Sinhalese", "Sinhalese to English"],
-    "Model": ["Benchmark", "Benchmark", "Our Fine-Tuned mT5", "Our Fine-Tuned mT5"],
-    "BLEU Score": [
-        BENCHMARK_SCORES["English to Sinhalese"],
-        BENCHMARK_SCORES["Sinhalese to English"],
-        scores["en-si"],
-        scores["si-en"]
-    ]
-}
-df = pd.DataFrame(data)
+rows = []
+for key, label in DIRECTIONS.items():
+    model_score = scores.get(key)
+    if model_score is None:
+        raise ValueError(f"Missing BLEU score for key '{key}' in bleu_scores.txt")
+    rows.append({
+        "Translation Direction": label,
+        "Model": "Our Fine-Tuned mT5",
+        "BLEU Score": model_score,
+    })
+
+    benchmark_score = BENCHMARK_SCORES.get(label)
+    if benchmark_score is not None:
+        rows.append({
+            "Translation Direction": label,
+            "Model": "Benchmark",
+            "BLEU Score": benchmark_score,
+        })
+
+df = pd.DataFrame(rows)
 
 # --- Generate Bar Chart ---
 print("Generating BLEU Score comparison chart...")
@@ -41,13 +54,19 @@ ax = sns.barplot(data=df, x="Translation Direction", y="BLEU Score", hue="Model"
 plt.title("Translation Performance (BLEU Score)", fontsize=16)
 plt.ylabel("BLEU Score (Higher is Better)")
 plt.xlabel("")
-plt.ylim(0, max(df["BLEU Score"]) * 1.2) # Set y-axis limit
+plt.ylim(0, max(df["BLEU Score"]) * 1.2)
 
-# Add score labels on top of bars
 for p in ax.patches:
-    ax.annotate(f'{p.get_height():.1f}', (p.get_x() + p.get_width() / 2., p.get_height()),
-                ha='center', va='center', fontsize=11, color='black', xytext=(0, 5),
-                textcoords='offset points')
+    ax.annotate(
+        f"{p.get_height():.1f}",
+        (p.get_x() + p.get_width() / 2.0, p.get_height()),
+        ha="center",
+        va="center",
+        fontsize=11,
+        color="black",
+        xytext=(0, 5),
+        textcoords="offset points",
+    )
 
 plt.tight_layout()
 plt.savefig("bleu_score_comparison.png", dpi=300)
