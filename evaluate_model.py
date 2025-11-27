@@ -7,7 +7,7 @@ import logging
 
 logging.basicConfig(level=logging.INFO)
 DATA_DIR = "data"
-EVAL_CSV = os.path.join(DATA_DIR, "combined_translations_test.csv")
+EVAL_CSV = os.path.join(DATA_DIR, "combined_translations_validation.csv")  # Use validation CSV with Tulu
 
 # Evaluate ONLY English -> Tulu
 TASK = ("translate english to tulu", "English", "Tulu", "en-tu")

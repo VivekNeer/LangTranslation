@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Worst Translations - English to Tulu Translation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+        .sample {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            background: #f9f9f9;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .sample:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .sample.best {
+            border-color: #4caf50;
+            background: #f1f8f4;
+        }
+        .sample.worst {
+            border-color: #f44336;
+            background: #fff1f0;
+        }
+        .sample-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #ddd;
+        }
+        .sample-number {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+        }
+        .metrics {
+            display: flex;
+            gap: 15px;
+        }
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+        .badge.success {
+            background: #4caf50;
+            color: white;
+        }
+        .badge.danger {
+            background: #f44336;
+            color: white;
+        }
+        .badge.info {
+            background: #2196F3;
+            color: white;
+        }
+        .section {
+            margin: 15px 0;
+        }
+        .label {
+            font-weight: bold;
+            color: #555;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        .content {
+            padding: 12px;
+            background: white;
+            border-left: 4px solid #2196F3;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+        .content.english {
+            border-left-color: #2196F3;
+        }
+        .content.tulu {
+            border-left-color: #9c27b0;
+            font-size: 1.2em;
+            line-height: 1.8;
+            font-family: 'Noto Sans Kannada', 'Tunga', 'Lohit Kannada', serif;
+        }
+        .content.reference {
+            border-left-color: #ff9800;
+        }
+        .exact-match {
+            display: inline-block;
+            margin-left: 10px;
+            font-size: 1.5em;
+        }
+        .stats {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .stats h3 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚠️ Worst Translations</h1>
+        <p class="subtitle">English to Tulu Translation Model Evaluation</p>
+        
+        <div class="stats">
+            <h3>Showing 6 Worst Translation Examples</h3>
+        </div>
+        
+        <div class="grid">
+
+            <div class="sample worst">
+                <div class="sample-header">
+                    <div class="sample-number">Sample #1</div>
+                    <div class="metrics">
+                        <span class="badge danger">BLEU: 0.00</span>
+                        <span class="badge info">Match: ✗</span>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">English Input</div>
+                    <div class="content english">When it was time to give birth she suffered without being able to give birth.</div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">Model Prediction (Tulu)</div>
+                    <div class="content tulu">ಪುಟ್ಟುನ ಪೊರ್ತು ಇಜ್ಜಾಂಡ್</div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">Reference Translation (Tulu)</div>
+                    <div class="content tulu reference">ಪೆದ್ದೆರಾನಗ ಪೆದ್ದೆರಾವಂದೆ ನರಳ್ಯಲ</div>
+                </div>
+            </div>
+
+            <div class="sample worst">
+                <div class="sample-header">
+                    <div class="sample-number">Sample #2</div>
+                    <div class="metrics">
+                        <span class="badge danger">BLEU: 0.00</span>
+                        <span class="badge info">Match: ✗</span>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">English Input</div>
+                    <div class="content english">Bharath film crew and Vaishnava Production Ratnagiri people.</div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">Model Prediction (Tulu)</div>
+                    <div class="content tulu">ಭಾರತೀಯ ನಲನಚಿತ್ರ ರಂಗ ನಟ ಪ್ರಶಸ್ತಿ ರಾಪಾವರಾಜೆರ್</div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">Reference Translation (Tulu)</div>
+                    <div class="content tulu reference">ಭರತ್ ಚಿತ್ರ ತಂಡದಕುಲು ಬೊಕ್ಕ ವೈಷ್ಣವ ಪ್ರೊಡಕ್ಷನ್ಸ್ ರತ್ನಗಿರಿ ಮೊಕುಲು.</div>
+                </div>
+            </div>
+
+            <div class="sample worst">
+                <div class="sample-header">
+                    <div class="sample-number">Sample #3</div>
+                    <div class="metrics">
+                        <span class="badge danger">BLEU: 0.00</span>
+                        <span class="badge info">Match: ✗</span>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">English Input</div>
+                    <div class="content english">He comes in human form to the elephant gate of Kavattara Guthina Mane.</div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">Model Prediction (Tulu)</div>
+                    <div class="content tulu">ಕಬತ್ತಾರ್ ರಾಜ್ಯೊದ ಗುತ್ತುಗ್ ಬೋಡಾಯಿನ ಸಾನ</div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">Reference Translation (Tulu)</div>
+                    <div class="content tulu reference">ಎಂಕ್ ಇಂಚಿನ ಗುತ್ತು ಬೋಡ್ ಪಂದ್ ಎನ್ನೊನುವೆ</div>
+                </div>
+            </div>
+
+            <div class="sample worst">
+                <div class="sample-header">
+                    <div class="sample-number">Sample #4</div>
+                    <div class="metrics">
+                        <span class="badge danger">BLEU: 0.00</span>
+                        <span class="badge info">Match: ✗</span>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">English Input</div>
+                    <div class="content english">Saffron should be used in God's work, in bhajans, and during some other religious ceremonies</div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">Model Prediction (Tulu)</div>
+                    <div class="content tulu">ದೈವ ಬೊಕ್ಕ ಭಜನಾ ಕ್ರಮೊಟ್ಟು ಪರಕೆ ಮಲ್ತೊ</div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">Reference Translation (Tulu)</div>
+                    <div class="content tulu reference">ಕೆಸರಿ ಬಳಕೆ ದೇವೆರೆನ ಕಾರ್ಯಡ್ ಭಜನೆದ ನನ ಕೆಲವೊಂಜಿ ಧಾರ್ಮಿಕ ಕಾರ್ಯದ ಪೊರ್ತುಡು ಉಪಯೋಗ ಮಲ್ಪೊಡು</div>
+                </div>
+            </div>
+
+            <div class="sample worst">
+                <div class="sample-header">
+                    <div class="sample-number">Sample #5</div>
+                    <div class="metrics">
+                        <span class="badge danger">BLEU: 0.00</span>
+                        <span class="badge info">Match: ✗</span>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">English Input</div>
+                    <div class="content english">Middle-class people.</div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">Model Prediction (Tulu)</div>
+                    <div class="content tulu">ಮಸ್ತ್ ತರೆಕ್ ಜನಕುಲು</div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">Reference Translation (Tulu)</div>
+                    <div class="content tulu reference">ನಡು ವರ್ಗದ ಜನೊಕುಲು</div>
+                </div>
+            </div>
+
+            <div class="sample worst">
+                <div class="sample-header">
+                    <div class="sample-number">Sample #6</div>
+                    <div class="metrics">
+                        <span class="badge danger">BLEU: 8.52</span>
+                        <span class="badge info">Match: ✗</span>
+                    </div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">English Input</div>
+                    <div class="content english">Meaning the fruit of the womb they give special sanctity to it</div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">Model Prediction (Tulu)</div>
+                    <div class="content tulu">ಬೊಕ್ಕ ಅಯಿಕ್ ದೋಸೆದ ಕಾಯಿ ಕೊರ್ಪೆರ್</div>
+                </div>
+                
+                <div class="section">
+                    <div class="label">Reference Translation (Tulu)</div>
+                    <div class="content tulu reference">ಬಂಜಿನ ಫಲಬೈದಿನ ಪಂಡಾ ಅಯಿಕ್ ಇಸೇಸವಾಯಿನ ಪಾವಿತ್ರತೆನ್ ಕೊರ್ಪೆರ್</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</body>
+</html>

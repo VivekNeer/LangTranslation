@@ -2,7 +2,7 @@ import argparse
 import torch
 from simpletransformers.t5 import T5Model
 
-MODEL_PATH = "outputs/mt5-english-tulu"
+MODEL_PATH = "outputs/mt5-english-tulu"  # Final trained model (all 10 epochs)
 TRANSLATION_PREFIX = "translate english to tulu"
 
 def _format_input(prefix: str, text: str) -> str:

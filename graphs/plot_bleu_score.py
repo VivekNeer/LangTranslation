@@ -18,7 +18,7 @@ plt.rcParams["figure.figsize"] = (8, 6)
 
 # --- Load Your Scores ---
 try:
-    with open("bleu_scores.txt", "r") as f:
+    with open("../bleu_scores.txt", "r") as f:
         scores = {line.split(',')[0]: float(line.split(',')[1]) for line in f}
 except FileNotFoundError:
     print("Error: bleu_scores.txt not found. Please run evaluate_model.py first.")
@@ -68,4 +68,4 @@ for p in ax.patches:
 
 plt.tight_layout()
 plt.savefig("bleu_score_comparison.png", dpi=300)
-print("Saved bleu_score_comparison.png")
+print("✅ Saved bleu_score_comparison.png to graphs/ folder")

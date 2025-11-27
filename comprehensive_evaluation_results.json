@@ -1,0 +1,169 @@
+{
+  "overall_metrics": {
+    "bleu_score": 8.403449489741952,
+    "exact_match_accuracy": 20.200000000000003,
+    "character_error_rate": 16.6842806598355,
+    "length_ratio_mean": 0.8475890997809017,
+    "length_ratio_std": 0.2682617200151069,
+    "total_samples": 1000
+  },
+  "length_analysis": {
+    "short (0-20)": {
+      "count": 859,
+      "bleu": 13.020226990902719,
+      "exact_match": 23.51571594877765
+    },
+    "medium (21-50)": {
+      "count": 139,
+      "bleu": 1.0345831431878498,
+      "exact_match": 0.0
+    },
+    "long (51+)": {
+      "count": 2,
+      "bleu": 0.21423483226723625,
+      "exact_match": 0.0
+    }
+  },
+  "sample_translations": [
+    {
+      "input": "Vishwajeet is facing",
+      "prediction": "ವಿಶ್ವಜಿತೆ ಎದುರಿಸವೊಂದುಲ್ಲೆ",
+      "reference": "ವಿಶ್ವಜಿತೆ   ಎದುರಿಸವೊಂದುಲ್ಲೆ",
+      "bleu": 100.00000000000004,
+      "exact_match": false
+    },
+    {
+      "input": "Anup is searching",
+      "prediction": "ಅನೂಪೆ ನಾಡೊಂದುಲ್ಲೆ",
+      "reference": "ಅನೂಪೆ  ನಾಡೊಂದುಲ್ಲೆ",
+      "bleu": 100.00000000000004,
+      "exact_match": false
+    },
+    {
+      "input": "Aditya beats/plays",
+      "prediction": "ಆದಿತ್ಯ ಬೊಟ್ಟುವೆ",
+      "reference": "ಆದಿತ್ಯ  ಬೊಟ್ಟುವೆ",
+      "bleu": 100.00000000000004,
+      "exact_match": false
+    },
+    {
+      "input": "Akshaya is roaring/raging.",
+      "prediction": "ಅಕ್ಷಯೆ ಬೊಬ್ಬೆಪಾಡೊಂದುಲ್ಲೆ",
+      "reference": "ಅಕ್ಷಯೆ  ಬೊಬ್ಬೆಪಾಡೊಂದುಲ್ಲೆ",
+      "bleu": 100.00000000000004,
+      "exact_match": false
+    },
+    {
+      "input": "Anuja goes",
+      "prediction": "ಅನುಜೆ ಪೋಪೆ",
+      "reference": "ಅನುಜೆ  ಪೋಪೆ",
+      "bleu": 100.00000000000004,
+      "exact_match": false
+    },
+    {
+      "input": "When it was time to give birth she suffered without being able to give birth.",
+      "prediction": "ಪುಟ್ಟುನ ಪೊರ್ತು ಇಜ್ಜಾಂಡ್",
+      "reference": "ಪೆದ್ದೆರಾನಗ ಪೆದ್ದೆರಾವಂದೆ ನರಳ್ಯಲ",
+      "bleu": 0.0,
+      "exact_match": false
+    },
+    {
+      "input": "Bharath film crew and Vaishnava Production Ratnagiri people.",
+      "prediction": "ಭಾರತೀಯ ನಲನಚಿತ್ರ ರಂಗ ನಟ ಪ್ರಶಸ್ತಿ ರಾಪಾವರಾಜೆರ್",
+      "reference": "ಭರತ್ ಚಿತ್ರ ತಂಡದಕುಲು ಬೊಕ್ಕ ವೈಷ್ಣವ ಪ್ರೊಡಕ್ಷನ್ಸ್ ರತ್ನಗಿರಿ ಮೊಕುಲು.",
+      "bleu": 0.0,
+      "exact_match": false
+    },
+    {
+      "input": "He comes in human form to the elephant gate of Kavattara Guthina Mane.",
+      "prediction": "ಕಬತ್ತಾರ್ ರಾಜ್ಯೊದ ಗುತ್ತುಗ್ ಬೋಡಾಯಿನ ಸಾನ",
+      "reference": "ಎಂಕ್ ಇಂಚಿನ ಗುತ್ತು ಬೋಡ್ ಪಂದ್ ಎನ್ನೊನುವೆ",
+      "bleu": 0.0,
+      "exact_match": false
+    },
+    {
+      "input": "Saffron should be used in God's work, in bhajans, and during some other religious ceremonies",
+      "prediction": "ದೈವ ಬೊಕ್ಕ ಭಜನಾ ಕ್ರಮೊಟ್ಟು ಪರಕೆ ಮಲ್ತೊ",
+      "reference": "ಕೆಸರಿ ಬಳಕೆ ದೇವೆರೆನ ಕಾರ್ಯಡ್ ಭಜನೆದ ನನ ಕೆಲವೊಂಜಿ ಧಾರ್ಮಿಕ ಕಾರ್ಯದ ಪೊರ್ತುಡು ಉಪಯೋಗ ಮಲ್ಪೊಡು",
+      "bleu": 0.0,
+      "exact_match": false
+    },
+    {
+      "input": "Middle-class people.",
+      "prediction": "ಮಸ್ತ್ ತರೆಕ್ ಜನಕುಲು",
+      "reference": "ನಡು ವರ್ಗದ ಜನೊಕುಲು",
+      "bleu": 0.0,
+      "exact_match": false
+    },
+    {
+      "input": "Meaning the fruit of the womb they give special sanctity to it",
+      "prediction": "ಬೊಕ್ಕ ಅಯಿಕ್ ದೋಸೆದ ಕಾಯಿ ಕೊರ್ಪೆರ್",
+      "reference": "ಬಂಜಿನ ಫಲಬೈದಿನ ಪಂಡಾ ಅಯಿಕ್ ಇಸೇಸವಾಯಿನ ಪಾವಿತ್ರತೆನ್ ಕೊರ್ಪೆರ್",
+      "bleu": 8.51528917838043,
+      "exact_match": false
+    },
+    {
+      "input": "\"So the Settis went to different towns and brought the sarees and jewelry needed for the princess.\"",
+      "prediction": "ಅಂಚಾದ್ ಊರುಗ್ ಪೋದು ರಾಜಕುಮಾರಿನ ಬೇತೆ ಬೇತೆ ಬೇತೆ ಬೇತೆ",
+      "reference": "ಅಂಚ ಸೆಟ್ಟನಕುಲು ಬೇತೆ ಬೇತೆ ಊರುಗುಪೋದು ರಾಜಕುಮಾರಿಗ್‌ ಬೋಡಿತ್ತಿನ ಸೀರೆ ಪದ್ದೆಯಿ ಕೊನತ್ತೆರ್‌",
+      "bleu": 8.60169543650466,
+      "exact_match": false
+    },
+    {
+      "input": "Thus the kingdom of Ajila kings of Venur also had thirteen 'maganes' (divisions).",
+      "prediction": "ಇಂಚ ಪಂಡ್ ದ್ ವೇಣೂರುದ ಅರಸುಲು",
+      "reference": "ಇಂಚ ವೇಣೂರ ಅರಸುಲೆ ರಾಜ್ಯೊಗುಲಾ ಪದಿಮೂಜಿ ಮಾಗಣೆಲಿತ್ತುಂಡ್",
+      "bleu": 8.745825313180626,
+      "exact_match": false
+    },
+    {
+      "input": "They also make new rice kheer (payasam) for the meal",
+      "prediction": "ನುಪ್ಫೊಗು ಪೊಸ ಅರಿತ ನುಪ್ಪು ಕೊರ್ಪೆರು",
+      "reference": "ವನಸ್ ಗ್ ಪೊಸ ಅರಿತ ಪಾಯಸಲ ಮಲ್ಪುವೆರ್",
+      "bleu": 8.745825313180626,
+      "exact_match": false
+    },
+    {
+      "input": "The stick that went to Nedilin forest was bitten.",
+      "prediction": "ವನಸ್ ಕಾಡ್ ಗ್ ಪೋಯಿನ ಕೋಲು",
+      "reference": "ನೆಡಿಲುದ ಕಾಡುಗ್ ಪೊಯೆ ನೆಡಿಲುದ ಕೋಲು ಕಡ್ತೆ",
+      "bleu": 8.745825313180626,
+      "exact_match": false
+    },
+    {
+      "input": "The wedding procession used to walk many kilometers",
+      "prediction": "ಮದ್ಮೆದ ಕ್ರಮೊಟ್ಟು ಮಸ್ತ್ ಮೈಲ್ ನಡತೊಂದಿತ್ತೆ",
+      "reference": "ಮದ್ಮೆ ದಿಬ್ಬಣ ಯೆತೊ ಮೈಲ್ ನಡತುದ್ ಪೊಪೆದುನಗೆ",
+      "bleu": 8.745825313180626,
+      "exact_match": false
+    },
+    {
+      "input": "Said in anger, 'No this should not happen like this'.",
+      "prediction": "ಕೋಪೊಡು ಪಂದ್ ಲೆಪ್ಪಂದೆ ಈರ್ಲಾ ಇಜ್ಜಿ",
+      "reference": "ಕೋಪೊಡು ಪಂಡೆ ಇಜ್ಜೀ ಇಂಚ ಆಯೆರೆ ಬಲ್ಲಿ",
+      "bleu": 8.745825313180626,
+      "exact_match": false
+    },
+    {
+      "input": "Ashada came limping this time how is it?",
+      "prediction": "ಆಟಿ ಅಟಿ ಪೋಯೆರೆ ಈತ್ ಪೊರ್ತು",
+      "reference": "ಆಡೊಂದು ಬತ್ತಂಡ್ ಆಟಿ ಈ ಸರ್ತಿ ಎಂಚಗೆ",
+      "bleu": 8.745825313180626,
+      "exact_match": false
+    },
+    {
+      "input": "The time to add beauty to the core of a woman's life",
+      "prediction": "ಪೊಣ್ಣನ ಬದ್ಕ್ ದ ಅಜ್ಜಿನ ಪೊರ್ತು",
+      "reference": "ಪೊಣ್ಣ ಜೂವನದ ತಿರ್ಲ್ಀಗ್ ಪೊರ್ಲು ದಿಂಜುನ ಪೊರ್ತು",
+      "bleu": 8.745825313180626,
+      "exact_match": false
+    },
+    {
+      "input": "Camphor Aarti instead of Dhoopa in modern times",
+      "prediction": "ದುಂಬುದ ಕಾಲೊಡು ದೂಪೆ ಸಾಗೊಲಿದ ಬಲಿ",
+      "reference": "ದೂಪೊದ ಪಗತ್ತೆಗ್ ಇತ್ತೆದ ಕಾಲೊಡು ಕರ್ಪೂರ ಅರತಿ",
+      "bleu": 8.745825313180626,
+      "exact_match": false
+    }
+  ]
+}
