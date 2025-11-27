@@ -1,26 +1,27 @@
 import argparse
+import torch
 from simpletransformers.t5 import T5Model
 
-MODEL_PATH = "VivekNeer/mt5-english-kannada-tulu"
-
-TRANSLATION_DIRECTIONS = {
-    "en-ka": "translate english to kannada",
-    "ka-tu": "translate kannada to tulu",
-}
-
+MODEL_PATH = "outputs/mt5-english-tulu"
+TRANSLATION_PREFIX = "translate english to tulu"
 
 def _format_input(prefix: str, text: str) -> str:
     return f"{prefix}: {text.strip()}"
 
-
 def main():
-    parser = argparse.ArgumentParser(description="Quickly test the bilingual translation model.")
+    parser = argparse.ArgumentParser(description="Quickly test the English->Tulu translation model.")
     parser.add_argument("text", nargs="*", help="Text to translate")
     parser.add_argument(
-        "--direction",
-        choices=TRANSLATION_DIRECTIONS.keys(),
-        default="en-ka",
-        help="Translation direction (default: en-ka)",
+        "--max_length",
+        type=int,
+        default=50,
+        help="Maximum output token length (default: 50)",
+    )
+    parser.add_argument(
+        "--num_beams",
+        type=int,
+        default=5,
+        help="Number of beams for beam search (default: 5)",
     )
     args = parser.parse_args()
 
@@ -29,18 +30,22 @@ def main():
         print("No text supplied; falling back to a default sentence.")
 
     print(f"Loading model from: {MODEL_PATH}")
-    model = T5Model("mt5", MODEL_PATH, use_cuda=False)
-    model.args.num_beams = 5
-    model.args.max_length = 50
-    print("Model loaded successfully.")
+    use_cuda = torch.cuda.is_available()
+    if not use_cuda:
+        print("CUDA not available - loading model on CPU (use_cuda=False).")
+    model = T5Model("mt5", MODEL_PATH, use_cuda=use_cuda)
 
-    prefixed = _format_input(TRANSLATION_DIRECTIONS[args.direction], sentence)
+    # Tweak generation args
+    model.args.num_beams = args.num_beams
+    model.args.max_length = args.max_length
+
+    print("Model loaded successfully.")
+    prefixed = _format_input(TRANSLATION_PREFIX, sentence)
     print("-" * 40)
-    print(f"Input ({args.direction}): {sentence}")
+    print(f"Input: {sentence}")
     translated_text = model.predict([prefixed])
     print(f"Output: {translated_text[0]}")
     print("-" * 40)
-
 
 if __name__ == "__main__":
     main()
