@@ -3,7 +3,6 @@ os.environ["TRANSFORMERS_USE_LEGACY_IMPORT"] = "True"
 
 import logging
 import pandas as pd
-import torch
 from simpletransformers.t5 import T5Model
 
 logging.basicConfig(level=logging.INFO)
@@ -79,29 +78,22 @@ eval_df = _build_tasks(eval_raw).head(5000)
 
 print(f"Prepared {len(train_df)} training rows and {len(eval_df)} validation rows.")
 
-# Detect CUDA availability and set use_cuda accordingly
-use_cuda = torch.cuda.is_available()
-if not use_cuda:
-    logging.info("CUDA not available -- training will run on CPU (use_cuda=False).")
-else:
-    logging.info("CUDA is available -- training will run on GPU (use_cuda=True).")
-
 model_args = {
     "reprocess_input_data": True,
     "overwrite_output_dir": True,
-    "max_seq_length": 128,
+    "max_seq_length": 64,
     "train_batch_size": 4,
     "eval_batch_size": 4,
     "num_train_epochs": 10,
     "save_eval_checkpoints": True,
     "save_steps": 5000,
     "use_multiprocessing": False,
-    "use_cuda": use_cuda,
     "fp16": False,
+    "use_cuda": False,  # CUDA not working (Error 101), train on CPU
     "output_dir": OUTPUT_DIR,
 }
 
-model = T5Model("mt5", "google/mt5-small", args=model_args, use_cuda=False)
+model = T5Model("mt5", "google/mt5-small", args=model_args)
 
 print("Starting model training...")
 model.train_model(train_df, eval_data=eval_df)
