@@ -1,11 +1,10 @@
 """
 Flask web application for English-Tulu translation with database integration.
-Uses locally trained model and stores translation history.
+Supports both custom trained mT5 model and IndicTrans2.
 Includes translation confidence and alternative predictions.
 """
 
 from flask import Flask, render_template, request, jsonify
-from simpletransformers.t5 import T5Model
 import torch
 import os
 import json
@@ -18,33 +17,84 @@ from database import TranslationDatabase
 
 app = Flask(__name__)
 
-# Configuration
-LOCAL_MODEL_PATH = "outputs/mt5-english-tulu"
-MODEL_NAME = "mt5-english-tulu"
+# Configuration - Using trained IndicTrans2 model with LoRA adapters
+BASE_MODEL = "ai4bharat/indictrans2-en-indic-dist-200M"
+ADAPTER_PATH = "indictrans2-200m-en-tulu"  # Your trained LoRA adapter
+
+MODEL_TYPE = "indictrans2-lora"
+HF_TOKEN = os.environ.get("HF_TOKEN", None)
+
 DEFAULT_DIRECTION = "en-tu"
+
+# Language codes used during training
+SRC_LANG = "eng_Latn"
+TGT_LANG = "kan_Knda"  # Using Kannada script for Tulu
 
 # Translation model cache
 translation_model = None
+translation_tokenizer = None
+indic_processor = None
 db = None
 
 
 def load_translation_model():
-    """Load the local trained translation model."""
-    global translation_model
-    if translation_model is None:
+    """Load the trained IndicTrans2 model with LoRA adapters."""
+    from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+    from peft import PeftModel
+    from IndicTransToolkit import IndicProcessor
+    
+    global translation_model, translation_tokenizer, indic_processor
+    if translation_model is None or translation_tokenizer is None:
         try:
-            print(f"Loading local model from: {LOCAL_MODEL_PATH}")
-            translation_model = T5Model(
-                "mt5",
-                LOCAL_MODEL_PATH,
-                use_cuda=False
+            print(f"Loading base model: {BASE_MODEL}")
+            print(f"Loading LoRA adapter from: {ADAPTER_PATH}")
+            
+            # Initialize IndicProcessor
+            indic_processor = IndicProcessor(inference=True)
+            print("IndicProcessor initialized")
+            
+            # Load tokenizer from base model (IndicTrans2 has special tokenizer requirements)
+            translation_tokenizer = AutoTokenizer.from_pretrained(
+                BASE_MODEL,
+                trust_remote_code=True,
+                token=HF_TOKEN
             )
-            print(f"Model loaded successfully from {LOCAL_MODEL_PATH}")
+            print("Tokenizer loaded from base model")
+            
+            # Load base model
+            base_model = AutoModelForSeq2SeqLM.from_pretrained(
+                BASE_MODEL,
+                trust_remote_code=True,
+                torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
+                token=HF_TOKEN
+            )
+            print("Base model loaded")
+            
+            # Load LoRA adapter
+            translation_model = PeftModel.from_pretrained(
+                base_model,
+                ADAPTER_PATH,
+                torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32
+            )
+            print("LoRA adapter loaded")
+            
+            # Move to GPU if available
+            if torch.cuda.is_available():
+                translation_model = translation_model.cuda()
+                print("Model loaded on GPU")
+            else:
+                print("Model loaded on CPU")
+                
+            print(f"IndicTrans2 with LoRA adapter loaded successfully")
         except Exception as e:
-            print(f"Error loading local model: {e}")
-            print("Make sure the model exists at outputs/mt5-english-tulu")
+            print(f"Error loading model: {e}")
+            print("\nPlease ensure:")
+            print("1. Base model access: https://huggingface.co/ai4bharat/indictrans2-en-indic-dist-200M")
+            print("2. Login: huggingface-cli login")
+            print("3. Install: pip install IndicTransToolkit peft")
+            print(f"4. Adapter exists at: {ADAPTER_PATH}")
             raise
-    return translation_model
+    return translation_model, translation_tokenizer, indic_processor
 
 
 def load_database():
@@ -56,6 +106,66 @@ def load_database():
     return db
 
 
+def translate_with_indictrans2(text, src_lang=None, tgt_lang=None, num_beams=5):
+    """Translate using trained IndicTrans2 model with LoRA."""
+    # Use configured language codes
+    if src_lang is None:
+        src_lang = SRC_LANG
+    if tgt_lang is None:
+        tgt_lang = TGT_LANG
+    
+    model, tokenizer, processor = load_translation_model()
+    
+    try:
+        # Preprocess the input using IndicProcessor
+        batch = processor.preprocess_batch(
+            [text],
+            src_lang=src_lang,
+            tgt_lang=tgt_lang
+        )
+        
+        # Tokenize
+        inputs = tokenizer(
+            batch,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+            max_length=256
+        )
+        
+        # Move to GPU if available
+        if torch.cuda.is_available():
+            inputs = {k: v.cuda() for k, v in inputs.items()}
+        
+        # Generate translation
+        with torch.inference_mode():
+            outputs = model.generate(
+                **inputs,
+                num_beams=num_beams,
+                max_length=256,
+                early_stopping=True
+            )
+        
+        # Decode
+        translations = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+        
+        # Postprocess using IndicProcessor
+        translations = processor.postprocess_batch(translations, lang=tgt_lang)
+        
+        return translations[0].strip() if translations else ""
+        
+    except Exception as e:
+        print(f"Translation error: {e}")
+        import traceback
+        traceback.print_exc()
+        return ""
+
+
+def translate_text(text, **kwargs):
+    """Translate text using trained IndicTrans2 model."""
+    return translate_with_indictrans2(text, **kwargs)
+
+
 def translate_with_confidence(text, direction="en-tu", num_alternatives=3):
     """
     Translate text and provide confidence score with alternatives.
@@ -64,20 +174,15 @@ def translate_with_confidence(text, direction="en-tu", num_alternatives=3):
     if direction != "en-tu":
         raise ValueError(f"Only 'en-tu' (English to Tulu) is supported. Got: {direction}")
     
-    model = load_translation_model()
-    
     try:
         # Get primary translation
-        predictions = model.predict([text])
-        translation = predictions[0] if predictions else ""
+        translation = translate_with_indictrans2(text, num_beams=5)
         
         # Calculate confidence based on translation length and input
         input_length = len(text.split())
         output_length = len(translation.split())
         
-        # Simple heuristic for confidence:
-        # - Good if output length is reasonable compared to input
-        # - Lower if output is very short or very long
+        # Simple heuristic for confidence
         length_ratio = output_length / max(input_length, 1)
         
         if 0.5 <= length_ratio <= 2.0:
@@ -92,32 +197,27 @@ def translate_with_confidence(text, direction="en-tu", num_alternatives=3):
             confidence += 10.0
         confidence = min(confidence, 99.0)  # Cap at 99%
         
-        # Generate alternative translations by varying generation parameters
+        # Generate alternative translations using different beam sizes
         alternatives = []
         try:
-            # Try with different temperature/sampling if model supports it
-            # For now, we'll generate variations based on word substitutions
-            words = translation.split()
-            if len(words) > 1:
-                # Create simple variations
-                # Alternative 1: Different word order (if multiple words)
-                if len(words) >= 2:
-                    alt1_words = words.copy()
-                    # Swap first two words as an alternative
-                    alt1_words[0], alt1_words[-1] = alt1_words[-1], alt1_words[0]
-                    alternatives.append({
-                        'text': ' '.join(alt1_words),
-                        'confidence': max(confidence - 15, 30.0),
-                        'reason': 'Alternative word order'
-                    })
+            # Alternative with fewer beams
+            alt1 = translate_with_indictrans2(text, num_beams=3)
+            if alt1 and alt1 != translation:
+                alternatives.append({
+                    'text': alt1,
+                    'confidence': max(confidence - 10, 30.0),
+                    'reason': 'Alternative translation (beam=3)'
+                })
+            
+            # Greedy decoding alternative
+            alt2 = translate_with_indictrans2(text, num_beams=1)
+            if alt2 and alt2 != translation and alt2 not in [a['text'] for a in alternatives]:
+                alternatives.append({
+                    'text': alt2,
+                    'confidence': max(confidence - 15, 25.0),
+                    'reason': 'Greedy translation'
+                })
                 
-                # Alternative 2: Just the main word (simplified)
-                if len(words) > 2:
-                    alternatives.append({
-                        'text': words[0],
-                        'confidence': max(confidence - 20, 25.0),
-                        'reason': 'Simplified form'
-                    })
         except Exception as e:
             print(f"Error generating alternatives: {e}")
         
@@ -125,6 +225,8 @@ def translate_with_confidence(text, direction="en-tu", num_alternatives=3):
         
     except Exception as e:
         print(f"Translation error: {e}")
+        import traceback
+        traceback.print_exc()
         return "", 0.0, []
 
 
@@ -154,7 +256,7 @@ def get_translation_metrics(input_text, output_text):
 @app.route('/')
 def home():
     """Render the main page."""
-    return render_template('index.html')
+    return render_template('index_shadcn.html')
 
 
 @app.route('/translate', methods=['POST'])
@@ -179,7 +281,7 @@ def translate():
         if not translated:
             return jsonify({
                 'success': False, 
-                'error': 'The model produced an empty translation.'
+                'error': 'The model produced an empty translation. Please try again.'
             }), 500
 
         # Save to database
@@ -188,11 +290,13 @@ def translate():
             input_text=input_text,
             output_text=translated,
             direction=direction,
-            model_version=MODEL_NAME,
+            model_version=MODEL_TYPE,
             session_id=session_id,
             metadata={
                 'include_details': include_details,
-                'confidence': confidence
+                'confidence': confidence,
+                'base_model': BASE_MODEL,
+                'adapter_path': ADAPTER_PATH
             }
         )
 
@@ -203,7 +307,8 @@ def translate():
             'direction': direction,
             'translation_id': translation_id,
             'session_id': session_id,
-            'confidence': round(confidence, 1)
+            'confidence': round(confidence, 1),
+            'model': MODEL_TYPE
         }
 
         # Add detailed metrics if requested
@@ -225,6 +330,8 @@ def translate():
 
     except Exception as e:
         print(f"Error during translation: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False, 
             'error': f'An error occurred: {str(e)}'
@@ -371,8 +478,21 @@ if __name__ == '__main__':
     print("Initializing English-Tulu Translation App")
     print("=" * 60)
     
+    print(f"\nUsing Model: IndicTrans2 with LoRA Adapter")
+    print(f"Base Model: {BASE_MODEL}")
+    print(f"Adapter Path: {ADAPTER_PATH}")
+    
     print("\n1. Loading translation model...")
-    load_translation_model()
+    try:
+        load_translation_model()
+    except Exception as e:
+        print(f"\nERROR: Could not load model!")
+        print("\nPlease ensure:")
+        print("1. Base model access: https://huggingface.co/ai4bharat/indictrans2-en-indic-dist-200M")
+        print("2. Login: huggingface-cli login")
+        print("3. Install: pip install IndicTransToolkit peft")
+        print(f"4. Adapter exists at: {ADAPTER_PATH}")
+        exit(1)
     
     print("\n2. Setting up database...")
     database = load_database()
@@ -381,14 +501,14 @@ if __name__ == '__main__':
     if not database.get_latest_model_metadata():
         print("\n3. Saving model metadata...")
         database.save_model_metadata(
-            model_name='mt5-english-tulu',
-            model_path=LOCAL_MODEL_PATH,
-            bleu_score=8.40,
-            exact_match_rate=20.20,
-            char_accuracy=83.32,
-            training_date='2024-11-27',
-            total_epochs=10,
-            dataset_size=8300
+            model_name='indictrans2-200m-en-tulu-lora',
+            model_path=ADAPTER_PATH,
+            bleu_score=None,  # Update after evaluation
+            exact_match_rate=None,
+            char_accuracy=None,
+            training_date='2024-12-02',
+            total_epochs=5,
+            dataset_size=None  # Update with your dataset size
         )
         print("   Model metadata saved successfully")
     else:
@@ -399,7 +519,7 @@ if __name__ == '__main__':
     print("Server will be available at: http://localhost:5000")
     print("=" * 60)
     print("\nEndpoints:")
-    print("  - POST /translate          - Translate text with confidence & alternatives")
+    print("  - POST /translate          - Translate text")
     print("  - GET  /history            - Get translation history")
     print("  - GET  /history/<id>       - Get specific translation")
     print("  - DELETE /history/<id>     - Delete translation")
