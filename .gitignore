@@ -5,6 +5,7 @@
 outputs/
 cache_dir/
 runs/
+indictrans2-200m-en-tulu/
 
 # Ignore the dataset itself (users should download it as per the README)
 data/
