@@ -1,11 +1,8 @@
 from simpletransformers.t5 import T5Model
 
 # 1. DEFINE YOUR MODEL PATHS
-# The local path where your trained model is saved
-local_model_path = "outputs/mt5-sinhalese-english-100k"
-
-# The name you want for your model on the Hub.
-hub_model_name = "VivekNeer/mt5-sinhalese-english"
+local_model_path = "outputs/mt5-english-kannada-tulu"
+hub_model_name = "VivekNeer/mt5-english-kannada-tulu"
 
 # 2. LOAD THE LOCAL SIMPLETRANSFORMERS MODEL
 print(f"Loading model from {local_model_path}...")

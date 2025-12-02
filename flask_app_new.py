@@ -154,7 +154,7 @@ def get_translation_metrics(input_text, output_text):
 @app.route('/')
 def home():
     """Render the main page."""
-    return render_template('index_shadcn.html')
+    return render_template('index.html')
 
 
 @app.route('/translate', methods=['POST'])

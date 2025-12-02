@@ -1,8 +1,11 @@
-# Simple mT5 Translation Model 🌐
+# Multilingual mT5 Translation Model 🌐
 
-This project fine-tunes a pre-trained multilingual T5 (`mT5-small`) model for translation. It uses the `simpletransformers` library for training and a `streamlit` web application to provide an interface for testing the final model.
+This project fine-tunes `mT5-small` with `simpletransformers` to power two chained translation directions from a single dataset:
 
-A pre-trained **English-to-Sinhalese** model from this repository is available on the Hugging Face Hub at [**VivekNeer/mt5-sinhalese-english**](https://huggingface.co/VivekNeer/mt5-sinhalese-english).
+- **English → Kannada**
+- **Kannada → Tulu**
+
+The latest checkpoints (and the Streamlit / Flask apps) now expect CSV datasets with three columns named `English`, `Kannada`, and `Tulu`. A fine-tuned checkpoint is published at [**VivekNeer/mt5-english-kannada-tulu**](https://huggingface.co/VivekNeer/mt5-english-kannada-tulu).
 
 ## 📋 Table of Contents
 - [Project Structure](#-project-structure)
@@ -15,15 +18,14 @@ A pre-trained **English-to-Sinhalese** model from this repository is available o
 
 ## 📁 Project Structure
 
-Here's an overview of the key files in this project:
+#️⃣ Here's an overview of the key files in this project:
 
-- **`prepare_data.py`**: A script to process raw text files into the `.tsv` format required for training.
-- **`train_model.py`**: The main script for training the model on a large subset of the data.
+- **`train_model.py`**: Builds bilingual training samples directly from the combined CSV dataset and launches full training.
 - **`quick_train_test.py`**: A utility script to run a short training session to verify the environment.
 - **`test_model.py`**: A command-line tool to quickly test a trained model with a single sentence.
 - **`app.py`**: A Streamlit web application to interact with a trained translation model.
 - **`upload_model.py`**: A script to upload a locally trained model to the Hugging Face Hub.
-- **`data/`**: The directory where datasets are stored.
+- **`data/`**: Place `combined_translations_train.csv` and `combined_translations_test.csv` here (not tracked in git).
 
 ---
 
@@ -60,7 +62,7 @@ pip install transformers==4.42.3 simpletransformers==0.70.0 sentencepiece pandas
 
 ## 🚀 Usage Workflow
 
-You have two options: use the pre-trained model directly or train your own from scratch.
+You have two options: use the published Hugging Face model directly or train your own from scratch with the CSV datasets.
 
 ### Option A: Use the Pre-trained Model 
 
@@ -71,11 +73,11 @@ This is the fastest way to get the translator running.
 
     **Change this line:**
     ```python
-    model_path = "outputs/mt5-sinhalese-english-100k"
+    model_path = "outputs/mt5-english-kannada-tulu"
     ```
     **To this:**
     ```python
-    model_path = "VivekNeer/mt5-sinhalese-english"
+    model_path = "VivekNeer/mt5-english-kannada-tulu"
     ```
 3.  **Run the app:**
     ```bash
@@ -92,19 +94,7 @@ This is the fastest way to get the translator running.
 
 Follow these steps to train your own version of the model.
 
-1.  **Download and Prepare the Data:** The initial setup uses the English-Sinhalese dataset.
-    ```bash
-    # Create directories and download data
-    mkdir -p data/eng-sin && cd data/eng-sin
-    wget [https://github.com/ThilinaRajapakse/simple_language_translation/releases/download/v0.1/eng-sin.zip](https://github.com/ThilinaRajapakse/simple_language_translation/releases/download/v0.1/eng-sin.zip)
-    unzip eng-sin.zip && gunzip train.src.gz && gunzip train.trg.gz
-    cd ../..
-    
-    # Run the data preparation script
-    python prepare_data.py
-
-    Need not do this as Data Folder already exists in the repo
-    ```
+1.  **Place the CSV datasets:** copy your three-column training and test files into the `data/` directory and name them `combined_translations_train.csv` and `combined_translations_test.csv` (see the provided samples for the expected headers).
 
 2.  **Run a Quick Verification Test (Optional):**
     ```bash
@@ -112,7 +102,7 @@ Follow these steps to train your own version of the model.
     ```
     This verifies your setup is correct before the long training run.
 
-3.  **Start the Full Training:** This will train the model on 100,000 sentences and save it locally to `outputs/mt5-sinhalese-english-100k`.
+3.  **Start the Full Training:** This will train the model on up to 100,000 English→Kannada / Kannada→Tulu sentence pairs (from the combined CSV) and save checkpoints to `outputs/mt5-english-kannada-tulu`.
     ```bash
     python train_model.py
     ```
@@ -134,9 +124,9 @@ Follow these steps to train your own version of the model.
 
 To train a model for a different language pair (e.g., English-to-Kannada):
 
-1.  **Prepare Your Dataset:** Create `train.src` and `train.trg` files with your translated sentences and place them in a new directory, e.g., `data/eng-kan/`.
-2.  **Update `prepare_data.py`:** Change the file paths and the prefix strings (e.g., `"translate english to kannada"`) to match your new language pair.
-3.  **Run the Workflow:** Execute the same training workflow as above.
+1.  **Prepare Your Dataset:** Assemble a CSV with the columns you need. For chained translations, ensure each column has aligned sentences.
+2.  **Update the `TASKS` tuples** inside `train_model.py`/`quick_train_test.py`/`evaluate_model.py` to reflect the prefixes and column names you want to train.
+3.  **Run the Workflow:** Execute `train_model.py`, evaluate, and update the apps just like the default English↔Kannada↔Tulu pipeline.
 
 ---
 

@@ -1,37 +1,51 @@
-import sys
+import argparse
+import torch
 from simpletransformers.t5 import T5Model
 
-# --- 1. Load your fully trained model ---
-# This path should point to the model you trained for several hours
-# model_path = "outputs/mt5-sinhalese-english-100k"
-model_path = "VivekNeer/mt5-sinhalese-english"
+MODEL_PATH = "outputs/mt5-english-tulu"  # Final trained model (all 10 epochs)
+TRANSLATION_PREFIX = "translate english to tulu"
 
-print(f"Loading model from: {model_path}")
-model = T5Model("mt5", model_path, use_cuda=False) # Ensure GPU is used if available
+def _format_input(prefix: str, text: str) -> str:
+    return f"{prefix}: {text.strip()}"
 
-# --- 2. Set generation arguments for good quality output ---
-model.args.num_beams = 5
-model.args.max_length = 50
+def main():
+    parser = argparse.ArgumentParser(description="Quickly test the English->Tulu translation model.")
+    parser.add_argument("text", nargs="*", help="Text to translate")
+    parser.add_argument(
+        "--max_length",
+        type=int,
+        default=50,
+        help="Maximum output token length (default: 50)",
+    )
+    parser.add_argument(
+        "--num_beams",
+        type=int,
+        default=5,
+        help="Number of beams for beam search (default: 5)",
+    )
+    args = parser.parse_args()
 
-print("Model loaded successfully.")
+    sentence = " ".join(args.text).strip() or "hello my name is vivek"
+    if not args.text:
+        print("No text supplied; falling back to a default sentence.")
 
-# --- 3. Get the input sentence from the command line ---
-# Check if a sentence was provided
-if len(sys.argv) < 2:
-    print("\nUsage: python test_model.py \"Your sentence to translate\"")
-    # Use a default sentence if none is provided
-    input_text = "hello my name is vivek"
-    print(f"\nNo sentence provided. Using default: \"{input_text}\"")
-else:
-    # Join all arguments to form the sentence
-    input_text = " ".join(sys.argv[1:])
+    print(f"Loading model from: {MODEL_PATH}")
+    use_cuda = torch.cuda.is_available()
+    if not use_cuda:
+        print("CUDA not available - loading model on CPU (use_cuda=False).")
+    model = T5Model("mt5", MODEL_PATH, use_cuda=use_cuda)
 
-# --- 4. Translate and print the output ---
-print("-" * 30)
-print(f"Input:    {input_text}")
+    # Tweak generation args
+    model.args.num_beams = args.num_beams
+    model.args.max_length = args.max_length
 
-# The model.predict() method handles the translation
-translated_text = model.predict([input_text])
+    print("Model loaded successfully.")
+    prefixed = _format_input(TRANSLATION_PREFIX, sentence)
+    print("-" * 40)
+    print(f"Input: {sentence}")
+    translated_text = model.predict([prefixed])
+    print(f"Output: {translated_text[0]}")
+    print("-" * 40)
 
-print(f"Output:   {translated_text[0]}")
-print("-" * 30)
+if __name__ == "__main__":
+    main()
